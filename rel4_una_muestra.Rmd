@@ -1,0 +1,240 @@
+---
+title: "Inferencia para una muestra"
+author: "Marta Venegas Pardo"
+date: "4/9/2021"
+output: 
+ pdf_document:
+  toc: true
+  toc_depth: 3
+  number_sections: true 
+---
+
+# Introducción
+
+Sea el siguiente contraste de hipótesis, dado un nivel de confianza $\alpha$: $$H_0 \sim N(\mu,\sigma^2)$$
+
+## Test Shapiro-Wilk:
+
+En el paquete base con la instrucción **shapiro.test**
+
+Creamos una variable aleatoria:
+
+```{r}
+set.seed(12345)
+x=rnorm(15,0,1)
+x
+```
+
+Test de Shapiro Wilk para ver si mi variable aleatoria sigue una normal.
+
+```{r}
+shapiro.test(x)
+```
+
+Tenemos que el p-valor=0.7189 por lo que acepto la hipótesis nula, es decir, los datos provienen de una variable aleatoria con distribución normal.
+
+## Test de normalidad en el paquete fBasics
+
+Instalamos la librería.
+
+```{r}
+library(fBasics)
+```
+
+Test de normalidad:
+
+```{r}
+ksnormTest(x)
+```
+
+En el paquete *nortest* vienen recogido otros test.
+
+# Ejercicio 1
+
+Dibujar la densidad de la t-Student bajo H0, los cuantiles que definen los puntos críticos y el valor del estadístico.
+
+Para hacer contrastes paramétricos deberíamos hacer antes contrastes de normalidad.
+
+## Estudiar gráficamente la normalidad.
+
+Tenemos 15 empresas y medimos a cada una de ellas la variable X=Gasto en publicidad en miles de euros. Construir un IC.
+
+```{r}
+x =c(17,12,15,16,15,11,12,13,20,16,14,13,10,13,11,10,13)
+length(x)
+#anador_tidy(x)
+```
+
+Ligera asimetría a la derecha pero no la suficiente para rechazar la normalidad.
+
+Caja y bigotes no revela que haya observaciones outliers.
+
+```{r}
+summary(x)
+```
+
+Realizamos el siguiente contraste de hipótesis:
+
+$$
+\begin{array}{l}
+H_0: \mu = 15 \\
+H_0: \not= 15
+\end{array}
+$$
+
+Se pueden utilizar test paramétricos:
+
+```{r}
+t.test(x)
+```
+
+Si no ponemos nada, estudia si la media es 0 o no. Por ello aparece un p-valor muy pequeño. Debemos fijar $H_0: \mu=15$
+
+Luego,
+
+```{r}
+t.test(x, mu=15)
+# t.test(x, mu=15, level=0.99, alternative="less") Podemos cambiar el nivel de confianza para el intervalo y hacer contrastes mayor menor, opción greater
+```
+
+Acepto $H_0$
+
+Con las otras opciones: (revisar y escribir bien)
+
+$$
+\begin{array}{l}
+H_0: \mu \leq 15 \\
+H_0: \mu > 15
+\end{array}
+$$
+
+```{r}
+library(ggplot2)
+funcion_g_dt_test=function(x,mu_=15){
+#mu_=15
+datos=data.frame(X=x)
+resul=t.test(datos$X,mu=mu_)
+  ggplot(datos,aes(x=X)) +
+  stat_function(aes(x=seq(-4,4,length=length(X))),
+                fun=dt,args = list(df=length(datos$X)-1),color="black")+
+  geom_vline(aes(xintercept=resul$statistic),color="blue", 
+             linetype="dotted",size=1.4)+
+  geom_vline(aes(xintercept=qt(0.025,df=resul$parameter)),color="red", 
+             linetype="dashed",size=1.4)+
+  geom_vline(aes(xintercept=qt(0.975,df=resul$parameter)),color="red", 
+             linetype="dashed",size=1.4)
+}
+                    
+```
+
+```{r}
+funcion_g_dt_test(x,mu_ = 15)
+```
+
+## Ejercicio 2
+
+```{r}
+#func_g_dt_test_unilateral(x,mu_=15)
+```
+
+## Ejercicio 3
+
+Se desea contrastar $H_0$ precio medio igual a 500
+
+```{r}
+x=c(110,12,2.5,98,1017,540,54,4.3,150,432)
+#ananor_tidy
+```
+
+No podemos usar la estadística paramétrica para estudiar esta muestra, habrá que emplear técnicas no paramétricas, como el test de rangos signos de Wilcoxson.
+
+```{r}
+wilcox.test(x,conf.int = TRUE,mu=500)
+```
+
+El intervalo incluye al valor 500, el pvalor= 0.1055, acepto $H_0$
+
+### Apartado a
+
+Calcular directamente W+ (test de rango-signo de Wilcoxon)
+
+```{r}
+#W+=suma(rangos(|Xi|),xi>0)
+# H0 = mu=0
+mu_=500
+rangos=rank(abs(x-mu_))
+rangos[(x-mu_) >0]
+(est.w=sum(rangos[(x-mu_) >0]))
+
+```
+
+Obtenemos el valor V del test anterior.
+
+### Apartado b
+
+Dibujar la función de probabilidad (densidad) de W+ para esta n, usando \*dsignrank\*
+
+```{r}
+#dsignrank()
+n=length(x)
+xx=seq(0,n*(n+1)/2,1)
+plot(xx,dsignrank(xx,n=n),type="l")
+```
+
+Tengo en el eje X las x y en el Y la f(x).
+
+Esperanza
+
+```{r}
+# E[W+]
+# Un estiamdor sería:
+sum(xx*dsignrank(xx,n=n))
+```
+
+Varianza
+
+```{r}
+sum(xx^2*dsignrank(xx,n=n))-(n*(n+1)/4)^2
+```
+
+## Ejercicio 4
+
+$$
+\begin{array}{l}
+H_0: p= \dfrac{3}{4} \\
+H_0: p \not= \dfrac{3}{4}
+\end{array}
+$$
+
+Con el test binomial, realizamos el contraste bilateral
+
+```{r}
+binom.test(c(682,243),p=3/4)
+```
+
+Acepto $H_0$, podemos afirmar que p=3/4.
+
+### 
+
+```{r}
+prop.test(x=682,n=682+243,p=3/4)
+```
+
+Este contraste usa la aproximación normal. Aceptamos $H_0$
+
+### Apartado a
+
+```{r}
+n=682+243
+pg=682/n
+Z=(pg-(3/4))/sqrt(0.75*(1-0.75)/n)
+Z^2
+```
+
+```{r}
+E0=n*(1/4) # Número esperado de fracasos
+E1=n*(3/4)
+O0=243
+O1=682
+((E0-O0)^2)/E0+((E1-O1)^2)/E1
+```
