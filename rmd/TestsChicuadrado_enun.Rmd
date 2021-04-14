@@ -18,28 +18,48 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Bondad de ajuste. Comprobar si un dado es correcto a partir del número de veces que ha salido cada lado.
 
-```r
+```{r}
 frecu <- c(22,21,22,27,22,36)
 probs <- rep(1/6,6)
 ```
 
 
 
+
+Utilizamos el test Chi-Cuadrado, donde comparamos lo observado frente a lo esperado.
+
+
+```{r}
+chisq.test(frecu, p=probs)
+```
+
+Acepto que sigue ese modelo probabilístico (equiprobabilidad).
+
 ## Ejercicio 2
 
 Por defecto se compara con la unif. discreta. En el siguiente ejemplo se trata de ver si en un texto las apariciones de las letras E,T,N,R,O se distribuyen según los valores conocidos en inglés.
 
-```r
+```{r}
 x <-c(100,110,80,55,14)
 probs <-c(29, 21, 17, 17, 16)/100
 ```
+
+Si sólo me dieran los datos en lugar de la frecuencia, tendría que hacer la tabla de frecuencias y ya hacer el ejercicio.
+
+```{r}
+chisq.test(x,p=probs)
+```
+
+Tenemos un p-valor muy extremo, existe una gran diferencia entre los valores observados y esperados. 
+Se rechaza que la muestra siga el modelo teórico.
+
 
 ## Ejercicio 3
 
 En la siguiente simulación se ilustra la calidad de la aproximación.
 Se generan M muestras de tamaño n de una ley Uinforme discreta.
 
-```{r eval=FALSE}
+```{r }
 probabi<- c(0.03,0.25,0.45,0.27)
 sum(probabi)
 set.seed(12345)
@@ -52,11 +72,32 @@ estad<- numeric(M)
 
 - Generar la muestra i, calcular la tabla y obtener el estadístico chi-cuadrado.
 
+```{r message=FALSE , warning=FALSE}
+for (i in 1:M) {
+  x=sample(1:4,size = n, prob = probabi,rep=T)
+  resultado= c(sum(x==1),
+               sum(x==2),
+               sum(x==3),
+               sum(x==4))
+  estadistico_chi=chisq.test(resultado, p=probabi)
+  estad[i] =estadistico_chi$statistic
+}
+```
 
+Tenemos estad con 5000 valores
+
+```{r}
+head(estad)
+```
 
 - Histograma del estadístico y densidad de la chi-cuadrado.
 
 
+```{r}
+hist(estad, breaks = 30, probability = TRUE,
+     main="Valores del estadístico Chi-Cuadrado",ylim = c(0,0.25))
+curve(dchisq(x,length(probabi)-1), col="blue",lwd=2,add=TRUE)
+```
 
 
 ## Ejercicio 4
