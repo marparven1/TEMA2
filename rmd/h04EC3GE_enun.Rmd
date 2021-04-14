@@ -1,0 +1,54 @@
+---
+title: "Hoja 4 de problemas y prácticas con R"
+author: "Departamento de Estadística e Investigación Operativa. Universidad de Sevilla"
+subtitle: Estadística Computacional I. Grado en Estadística
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+1. Realizar los ejercicios sobre inferencia de una muestra disponibles en el fichero "Inferencia1m".
+
+
+2. Realizar los ejercicios sobre inferencia de dos muestras disponibles en el fichero "Inferencia2m".
+
+
+
+3. Realizar los ejercicios sobre contrastes chi-cuadrado disponibles en el fichero "Testschicuadrado".
+
+
+
+
+4. Realizar los ejercicios sobre Modelos Lineales disponibles en el fichero "ModelosLineales".
+
+
+5.	El espacio de trabajo ClickDerIzq.RData contiene los resultados de 20 experimentos en los que se muestra en pantalla un punto y el usuario debe marcarlo, 10 con la mano derecha y 10 con la izquierda. Para ello se ha utilizado la función click() del fichero de instrucciones "Hoja4ECI5a7".
+
+    i)	Cargar el contenido de dicho espacio de trabajo mediante la orden load("ClickDerIzq.RData")).
+    ii)	Calcular las distancias de los puntos mostrados a los pulsados.
+    iii)	Resumir y comparar los  tiempos derecha/izquierda.
+    iv)	Resumir y comparar las  distancias derecha/izquierda.
+    v)	Construir un data frame con: Mano, localizaciones, pulsaciones, tiempos, distancias. Representar en la misma nube de puntos las localizaciones y las posiciones de las pulsaciones.
+    vi)	Construir la nube de puntos (tiempo, distancia) y superponer las rectas de mínimos cuadrados para el total y según la mano.
+
+
+
+6. El fichero "Aptitudempleo.txt" contiene las siguientes variables: grupo, rendimiento en un determinado trabajo y test previo sobre la aptitud hacia ese trabajo.
+
+    i)	Construir un modelo apropiado de  regresión lineal para estos datos.
+    ii)	¿Cuánto debería ser el mínimo exigible en el test de aptitud para poder esperar un mínimo de 5 en el rendimiento?
+
+
+
+7. Las inscripciones a un curso trimestral en los últimos cuatro años han sido:
+
+    `10,31,43,16,11,33,45,17,13,34,48,19,15,35,51,21`.
+    
+    Predecir las inscripciones para el año siguiente.
+
+

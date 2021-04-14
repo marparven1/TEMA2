@@ -1,0 +1,141 @@
+---
+title: "Hoja 4 (c): Tests Chi-cuadrado con R"
+author: "Departamento de Estadística e Investigación Operativa. Universidad de Sevilla"
+subtitle: Estadística Computacional I. Grado en Estadística
+lang: es
+output:
+  pdf_document: 
+    toc: no
+  html_document: 
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejercicio 1
+
+Bondad de ajuste. Comprobar si un dado es correcto a partir del número de veces que ha salido cada lado.
+
+```r
+frecu <- c(22,21,22,27,22,36)
+probs <- rep(1/6,6)
+```
+
+
+
+## Ejercicio 2
+
+Por defecto se compara con la unif. discreta. En el siguiente ejemplo se trata de ver si en un texto las apariciones de las letras E,T,N,R,O se distribuyen según los valores conocidos en inglés.
+
+```r
+x <-c(100,110,80,55,14)
+probs <-c(29, 21, 17, 17, 16)/100
+```
+
+## Ejercicio 3
+
+En la siguiente simulación se ilustra la calidad de la aproximación.
+Se generan M muestras de tamaño n de una ley Uinforme discreta.
+
+```{r eval=FALSE}
+probabi<- c(0.03,0.25,0.45,0.27)
+sum(probabi)
+set.seed(12345)
+n<-50 #tamaño muestral
+n*probabi  #Se cumplen las condiciones 
+M<-5000
+estad<- numeric(M)
+```
+
+
+- Generar la muestra i, calcular la tabla y obtener el estadístico chi-cuadrado.
+
+
+
+- Histograma del estadístico y densidad de la chi-cuadrado.
+
+
+
+
+## Ejercicio 4
+
+Tests de independencia en tablas de contingencia.
+
+```{r echo=FALSE}
+#save(TRABAJO,AUTOESTIMA,file="ej04.RData")
+load("ej04.RData")
+tabla<- table(TRABAJO,AUTOESTIMA)
+tabla
+```
+
+
+### Apartado a
+
+Comprobación del p-valor y dibujar la distribución teórica, el cuantil y el valor observado.
+
+
+
+
+## Ejercicio 5 
+
+Tests de independencia en tablas de contingencia (Uso de la librería vcd).
+
+```{r}
+load("GSS.RData")
+GSS
+```
+
+
+
+
+## Ejercicio 6
+
+
+Una dama británica sostenía que era capaz de adivinar si en un té con leche se ha vertido antes el té o la leche. 
+
+Para ello se realizó un experimento donde se le pidió que lo adivinara para 8 tazas:
+
+```
+H0:P[dice leche=/leche]=P[dice té/leche]
+H1:P[dice leche=/leche]>P[dice té/leche]
+```
+
+
+
+```{r}
+pruebate <-
+  matrix(c(
+    3,1,1,3), nrow = 2,
+    dimnames = list(Predice = c("Leche", "Té"),
+                    Verdad = c("Leche", "Té")))
+pruebate
+```
+
+
+## Ejercicio 7 
+
+Gafas y antecedentes.
+
+```{r}
+gafasante <-
+  matrix(c(1, 8, 5, 2), nrow = 2,
+         dimnames = list(Gafas = c("Sí", "No"),
+                         Antecedentes = c("Sí", "No")))
+gafasante
+```
+
+
+## Ejercicio 8
+
+Test de McNemar (datos relacionados). Datos relacionados, por ejemplo antes-después.
+
+Dos encuestas con un mes de separación, se pregunta a cada uno de los 1600 encuestados si aprueba o desaprueba a un gobernante.
+
+```{r}
+datos <- matrix(c(794, 86, 150, 570), nrow = 2,
+       dimnames = list("Primera encuesta" = c("Aprueba", "Desaprueba"),
+                       "segunda encuesta" = c("Aprueba", "Desaprueba")))
+datos
+```
