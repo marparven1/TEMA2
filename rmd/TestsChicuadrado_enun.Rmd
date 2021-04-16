@@ -4,10 +4,10 @@ author: "Departamento de Estadística e Investigación Operativa. Universidad de
 subtitle: Estadística Computacional I. Grado en Estadística
 lang: es
 output:
-  pdf_document: 
-    toc: no
   html_document: 
-    toc: no
+    toc: yes
+  pdf_document: 
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -117,6 +117,59 @@ tabla
 Comprobación del p-valor y dibujar la distribución teórica, el cuantil y el valor observado.
 
 
+H0 es la independencia de las muestras.
+
+```{r}
+resul=chisq.test(tabla)
+resul
+
+```
+
+Rechazo H0, las muestras están relacionadas. Lo razonamos debido al p-valor.
+
+```{r}
+resul$expected
+```
+```{r}
+resul$observed
+```
+
+Calculamos el estadístico de manera manual. 
+
+- Forma 1:
+
+```{r}
+sum(resul$residuals^2)
+```
+
+- Forma 2:
+
+```{r}
+sum((resul$observed-resul$expected)^2/(resul$expected))
+```
+
+
+
+Para el cálculo del p-valor:
+
+```{r}
+nr=nrow(tabla)
+nc=ncol(tabla)
+gr_lib=(nr-1)*(nc-1)
+1-pchisq(resul$statistic,df=gr_lib)
+```
+
+
+Podemos dibujar la fdd para la Chi-Cuadrado con esos grados de libertad.
+
+```{r}
+curve(dchisq(x,gr_lib),0,30,1000,lwd=2,col="blue")
+abline(v=resul$statistic,col="red")
+abline(v=qchisq(0.95,gr_lib), col="green")
+```
+
+El p-valor es la probabilidad de que quede a la derecha, que como vemos es muy pequeña.
+La línea verde me muestra donde se encuentra el estadístico,donde empieza la región crítica.
 
 
 ## Ejercicio 5 
@@ -127,6 +180,37 @@ Tests de independencia en tablas de contingencia (Uso de la librería vcd).
 load("GSS.RData")
 GSS
 ```
+
+
+
+Podemos hacer una tabla de frecuencias con el paquete básico.
+```{r}
+tabla_GSS=xtabs(count ~ sex+party , data = GSS)
+tabla_GSS
+```
+Realizamos el test Chi_Cuadrado.
+```{r}
+chisq.test(tabla_GSS)
+```
+
+Lo hacemos ahora con el paquete vcd.
+Instalo el paquete vcd
+
+```{r}
+library(vcd)
+assocstats(tabla_GSS)
+#CrossTable(GSStab)
+```
+Me calcula todas las medidas de asociación. Me interesa el p-valor de pearson.
+
+Hacemos un gráfico.
+```{r}
+assocplot(tabla_GSS, col=c("blue","pink"),
+          main="Azul=Obs>Esp , Rosa= Obs<Esp")
+```
+Nos presenta la tabla de forma gráfica, mostrando como están distribuidas las categorías.
+
+Parece que existe un comportamiento relacionado con el sexo.
 
 
 
@@ -154,10 +238,33 @@ pruebate <-
 pruebate
 ```
 
+Probamos con el Test ChiCuadrado (a pesar de que las observadas no son mayores o iguales a 5)
+
+```{r}
+res=chisq.test(pruebate)
+res
+```
+
+No hay razones para rechazar.
+
+```{r}
+res$expected
+```
+Lo observado no se espera mucho de lo esperado.
+
+
+En esta situación es más apropiado aplicar el Test exacto de Fisher:
+
+```{r}
+fisher.test(pruebate, alternative = "greater")
+```
+
 
 ## Ejercicio 7 
 
 Gafas y antecedentes.
+
+
 
 ```{r}
 gafasante <-
@@ -166,7 +273,18 @@ gafasante <-
                          Antecedentes = c("Sí", "No")))
 gafasante
 ```
+Se requiere contrastar que H0: Variables categóricas independientes.
 
+```{r}
+chisq.test(gafasante) # Muestres independientes.
+```
+
+El test de fisher:
+
+```{r}
+fisher.test(gafasante)
+```
+Rechazo H0, existe un comportamiento diferente entre las variables
 
 ## Ejercicio 8
 
@@ -180,3 +298,14 @@ datos <- matrix(c(794, 86, 150, 570), nrow = 2,
                        "segunda encuesta" = c("Aprueba", "Desaprueba")))
 datos
 ```
+
+
+Muestras dependientes
+
+
+```{r}
+mcnemar.test(datos)
+```
+
+
+El pvalor es menor 1 alpha, rechazo H0: lasm uestra se comportan igual. Es decir, ha habido un cambio de opcinión de una encuesta a otra
