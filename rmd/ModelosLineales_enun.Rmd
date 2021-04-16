@@ -22,6 +22,139 @@ ANOVA de un factor.
 
 El fichero de datos "scores.txt" contiene la puntuación obtenida en una prueba de nivel de inglés para 40 alumnos. Se han considerado 4 academias, de cada una de las cuales han sido seleccionados aleatoriamente 10 alumnos. Se trata de estudiar si existen diferencias significativas entre las puntuaciones medias dependiendo de la academia.
 
+```{r}
+scores=read.table(file="scores.txt", header=TRUE)
+head(scores)
+```
+
+
+Lo representamos:
+```{r}
+boxplot(scores$Score ~scores$Grupo)
+```
+Nos lo representa para cada grupo.
+
+¿Son significativas las diferencias que vemos gráficamente?
+
+Las medias para cada academia:
+
+```{r}
+library(tidyverse)
+scores %>% 
+  group_by(Grupo) %>% 
+  summarise(
+    Media = mean(Score)
+  )
+```
+
+Para estudiar la normalidad:
+
+### Test de Shapiro
+
+```{r}
+shapiro.test(
+  scores %>% 
+    filter(Grupo =="A") %>%
+    select(Score) %>%
+    pull())
+shapiro.test(
+  scores %>% 
+    filter(Grupo =="B") %>%
+    select(Score) %>%
+    pull())
+shapiro.test(
+  scores %>% 
+    filter(Grupo =="C") %>%
+    select(Score) %>%
+    pull())
+shapiro.test(
+  scores %>% 
+    filter(Grupo =="D") %>%
+    select(Score) %>%
+    pull())
+```
+
+Si aceptamos.
+
+Vamos a hacerlo de una vez:
+
+```{r}
+scores %>% 
+  group_by(Grupo) %>% 
+  summarise(
+    pvalor.shapiro = shapiro.test(Score)$p.value # Le paso el TShapiro a la vble score pero selecciono solo el p-valor o podría el estadístico. Si no selecciono nada me devuelve una lista y da error.
+  )
+```
+
+
+Con purrr
+```{r}
+library(purrr)
+scores %>% 
+  split(.$Grupo) %>% 
+  map_dbl(~shapiro.test(.x$Score)$p.value)
+```
+Aceptamos la Normalidad en las cuatro academias.
+
+Estudiamos la homocedasticidad o igualdad de varianzas.
+
+```{r}
+library(car)
+leveneTest(scores$Score~scores$Grupo, center="mean")
+```
+Aceptamos la hipótesis de homocedasteceidad.
+
+
+Podemos aplicar los test paramétricos ANOVA.
+
+```{r}
+anova1factor=aov(Score~Grupo , data=scores)
+anova1factor
+summary(anova1factor)
+```
+
+Rechazo H0: medias iguales. Las academias no tienen la misma valoración.
+
+```{r}
+cbind(Coef=coef(anova1factor),confint(anova1factor))
+```
+
+Coge el grupo A como referencia. El B y C están por debajo mñás de un punto en media, y el D tiene una media muy parecida.
+
+En el grupo B no está el 0, la diferencia es muy significativa. Con los C y D está el 0.
+
+Comparaciones multple: Métodos de Tukey y Ducan
+
+Tukey
+```{r}
+TukeyHSD(x=anova1factor, conf.level = 0.95)
+```
+Aceptamos o rechazamos que sean más grandes las medias.
+Difernecias significativas: B-A y D-B (por los p-valores)
+
+Duncan
+```{r}
+library(agricolae)
+resD=duncan.test(anova1factor,trt="Grupo", console=TRUE)
+```
+```{r}
+plot(resD)
+```
+
+Aparecen dos grupos de academias: D-A y C-B.
+
+La estamos viendo de forma ordenada. La mejor media es la D. La A es menor pero podría estar en el mismo grupo. El C viene por detrás y luego por último el B
+
+
+$$
+H_0 : \mu_1 = \mu_2 =\mu_3=\mu_4
+$$
+
+Si hubiéramos usado la estadística no paramétrica, sería a través de:
+
+```{r}
+kruskal.test(scores$Score~ scores$Grupo)
+```
 
 
 
@@ -32,7 +165,8 @@ ANOVA de dos factores.
 
 A fin de investigar el efecto del fármaco Rhitalin sobre los niños hiperactivos se tomó una muestra de 4 niños para cada uno de los cruces de los dos siguientes factores: Tipo de niño (normal e hiperactivo) y medicamento administrado (Placebo y Rhitalin). Para cada niño se midió un índice de actividad.
 
-
+Factores: Son variables categóricas
+Muestras independientes pero para el cruce de dos factores.
 ```{r}
 indice<-c(50,45,55,52,67,60,58,65,70,72,68,
           75,51,57,40,55)
@@ -41,7 +175,53 @@ levels(niño)<- c("Normal","Hiperactivo")
 tratamiento<- gl(2,4,16)
 levels(tratamiento)<- c("Placebo","Rhitalin")
 data.frame(niño,tratamiento,indice)
+datos2=data.frame(niño,tratamiento,indice)
 ```
+
+Solución:
+
+```{r}
+plot(indice~niño + tratamiento)
+```
+
+Interacciones:
+
+```{r}
+interaction.plot(niño, tratamiento ,indice)
+interaction.plot(tratamiento,niño ,indice)
+```
+Vemis que el únduce de hioeractividad aumenta con placebo, pero con el medicamento desciende. Parece que hay relación.
+
+
+
+```{r}
+interaction.plot(tratamiento,niño ,indice)
+```
+Interpretar
+
+
+
+Test de Anova de dos factores (si es paramétrico)
+```{r}
+modelo2_factores=lm(indice~niño * tratamiento) # Producto en la fórmula (Le digo que tambien considere las interacciones)
+anova(modelo2_factores)
+```
+
+
+```{r}
+summary(modelo2_factores)
+```
+
+Estudio las hipotesis
+```{r}
+shapiro.test(modelo2_factores$residuals)
+```
+
+Acepto H0.
+Si rechazo, técnicas no paramétricas.
+
+
+
 
 ## Ejercicio 3
 
@@ -57,8 +237,41 @@ y <-c(202,186,187,180,156,169,174,172,
 #y=Máximo de "frecuencia cardíaca"
 ```
 
+
+```{r}
+library(tidyverse)
+library(tibble)
+datos3=tibble(Edad=x,FCardiaca=y)
+head(datos3)
+```
+
+
 Nube puntos y superponer la recta de mínimos cuadrados.
 
+```{r}
+library(ggrepel)
+datos3 %>% 
+  ggplot(aes(x=Edad , y=FCardiaca, label=row.names(.)))+
+  geom_point() + #Diagrama de dsipersion
+  geom_smooth(method="lm")+
+  geom_text_repel()
+```
+Vamos a obtener el modelo lineal.
+```{r}
+modelo=lm(FCardiaca~Edad, data=datos3)
+summary(modelo)
+```
+
+
+Se puede estudiar el cumplimiento de las hipotesis del modelo de regrsión lineal con ayuda.
+```{r}
+plot(modelo)
+```
+
+
+Comentar.
+
+El último gráfico estudia la existencia de posibles outliers, parece que no hay ningun punto que se salga de la zona.
 
 ## Ejercicio 4
 
@@ -70,6 +283,9 @@ library(ISLR) #para acceder a Hitters
 data(Hitters)
 # ?Hitters
 ```
+
+
+
 
 
 
@@ -91,6 +307,9 @@ Incrementar en mil dólares el gasto publicitario en TV conlleva, por término m
 Si se incrementa en mil dólares el gasto publicitario en la Radio, cabe esperar que las ventas aumenten en 188 unidades, suponiendo fijo el gasto en TV.
 
 Los gastos publicitarios en TV y Radio explican el 89.72% de la varianza de las Ventas del producto mediante este modelo.
+
+
+
 
 
 ## Ejercicio 6
