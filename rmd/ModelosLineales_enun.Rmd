@@ -526,3 +526,10 @@ Comparamos con la de grado 1:
 lm.1=lm(dist~height) 
 summary(lm.1)
 ```
+```{r}
+AIC(lm.1)
+AIC(lm.2)
+AIC(lm.3)
+```
+
+El mejor modelo es el de regresión cúbica.
