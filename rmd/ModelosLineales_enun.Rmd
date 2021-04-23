@@ -282,11 +282,93 @@ Regresión Lineal Múltiple.
 library(ISLR) #para acceder a Hitters
 data(Hitters)
 # ?Hitters
+summary(Hitters)
 ```
 
 
 
+```{r}
+dim(Hitters)
+```
 
+Valores NA en el dataset:
+```{r}
+length(which(is.na(Hitters)))
+```
+
+Lo que no sabemmos es si es sobre la misma variable o no. Podemos calcular los valores NA para cada columna con sapply 
+```{r}
+sapply(Hitters, function(x) sum(is.na(x)))
+```
+Recorre cada columna y suma los unos que haya. Como vemos únicamente en la variable Salario.
+
+
+Vamos a trabajar sin las filas que tienen valores NA:
+
+```{r}
+Hitters2=na.omit(Hitters)
+```
+
+
+Vamos a realizar un análisis de regresión lineal múltiple sobre la variable Salario ( dependiente )
+
+```{r}
+boxplot(Hitters2$Salary)
+```
+Existen vastantes valores outliers, distribución muy asimétrica.
+
+```{r}
+boxplot(log(Hitters2$Salary))
+```
+
+Decidimos trabajar con la variable transformada (log(Salary))
+
+El modelo que vamos a considerar es:
+
+```{r}
+str(Hitters2)
+```
+Las variables categóricas son de tipo factor (asigna valores numéricos a cada categoría)
+
+```{r}
+(modeloRLM=lm(data=Hitters, formula= log(Salary)~.))
+modeloRLMpeor=lm(data=Hitters, formula= Salary~.)
+```
+
+```{r}
+summary(modeloRLM)
+```
+
+Las variables significativas son las que tienen asteriscos, rechazo que sea, 0 esos coeficientes.
+
+```{r}
+# summary(modeloRLMpeor)
+```
+
+Para estudiar la validez de las hipótesis:
+
+```{r}
+plot(modeloRLM)
+```
+```{r}
+cuales=c("-Mike Schmidt" , "-Terry Kennedy" , "-Steve Sax")
+Hitters2red=Hitters2[rownames(Hitters2) %in% cuales , ]
+Hitters2red
+```
+
+Vamos a ver si mejora la regresión quitando a estos individuos
+
+```{r}
+Hitters3=Hitters2[!(rownames(Hitters2) %in% cuales),]
+(modeloRLM3=lm(data=Hitters3, formula= log(Salary)~.))
+```
+```{r}
+summary(modeloRLM3)
+```
+
+```{r}
+plot(modeloRLM3)
+```
 
 
 ## Ejercicio 5
@@ -309,7 +391,107 @@ Si se incrementa en mil dólares el gasto publicitario en la Radio, cabe esperar
 Los gastos publicitarios en TV y Radio explican el 89.72% de la varianza de las Ventas del producto mediante este modelo.
 
 
+### Solución
+```{r}
+library(readr)
+Advertising <- read_csv("rmd/Advertising.csv")
+```
 
+```{r}
+dim(Advertising)
+summary(Advertising)
+```
+
+En este dataset no hay valores faltantes o NA, ya que summary nos lo da.
+
+
+
+```{r}
+length(which(is.na(Advertising)))
+```
+
+```{r}
+boxplot(Advertising$Ventas)
+```
+No es necesario utilizar transformaciones de "Ventas", ya que no existen valores outliers.
+
+
+El modelo de regresión lineal simple que planteamos:
+```{r}
+resRML=lm(data = Advertising,formula = Ventas~TV+Radio+Prensa)
+summary(resRML)
+```
+R cuadrado es alto, la única variable que no interviene es prensa. ¿Se verá muy afectado el modelo si quito esta variable?
+
+```{r}
+resRML1=lm(data = Advertising,formula = Ventas~TV+Radio)
+summary(resRML1)
+```
+
+Tenemos el mismo R, usarla o no no mejora el comportamiento del modelo lineal.
+
+Para comparar modelos lineales no es conveniente usar el valor de Rcuadrado (tiene en cuenta el número de variables predictoras).
+
+Mejor usar los criterios de información:
+
+- AIC (de Akaike)
+- BIC (Bayesiano)
+
+```{r}
+AIC(resRML)
+AIC(resRML1)
+```
+
+```{r}
+BIC(resRML)
+BIC(resRML1)
+```
+
+
+Se observa que el modelo "resMRL1" se comporta mejor según los dos valores, al presentar un valor menor.
+
+```{r}
+plot(Advertising[,-1])
+```
+Vamos a ver la correlación 
+```{r}
+cor(Advertising[,-1])
+```
+
+```{r}
+plot(resRML1)
+```
+
+Se pueden obtener intervalos de confianza para los coeficientes de regresión:
+
+```{r}
+confint(resRML1) # Podemos cambiar el nivel.
+```
+
+Para realizar predicciones:
+
+```{r}
+predict(resRML1)
+```
+Para hacer predicciones sobre datos nuevos:
+
+```{r}
+Advertising
+(datos.nuevos = data.frame(
+ TV = c(rep(seq(100,300, by = 50), 5)),
+ Radio = c(rep(1:5, each = 5)*10)
+
+))
+```
+Para predecir:
+```{r}
+predict(resRML1, datos.nuevos, interval = "confidence")
+```
+Para datos nuevos mejor usar el dato "prediction":
+
+```{r}
+predict(resRML1, datos.nuevos, interval = "prediction")
+```
 
 
 ## Ejercicio 6
@@ -323,3 +505,24 @@ dist = c(253, 337,395,451,495,534,574)
 height = c(100,200,300,450,600,800,1000)
 ```
 
+
+### Solución:
+
+Regresión cuadrática:
+
+```{r}
+lm.2=lm(dist~height+I(height^2)) # Añado término de 2 grado.
+summary(lm.2)
+```
+Regresión cúbica o de grado 3:
+
+```{r}
+lm.3=lm(dist~height+I(height^2)+ I(height^3)) 
+summary(lm.3)
+```
+Comparamos con la de grado 1:
+
+```{r}
+lm.1=lm(dist~height) 
+summary(lm.1)
+```
