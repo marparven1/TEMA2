@@ -17,7 +17,7 @@ ananor<-function(x)
 }
 
 
-
+library(patchwork)
 ananor_tidy<-function(x)
 {
         n<-length(x)
