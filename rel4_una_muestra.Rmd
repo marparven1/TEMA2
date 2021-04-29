@@ -1,17 +1,29 @@
 ---
 title: "Inferencia para una muestra"
 author: "Marta Venegas Pardo"
-date: "4/9/2021"
-output: 
- pdf_document:
-  toc: true
-  toc_depth: 3
-  number_sections: true 
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+  html_document:
+    toc: yes
+    toc_depth: '3'
+    df_print: paged
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      fig.align = "center",
+                      out.width="60%")
+library(tidyverse)
+library(kableExtra)
+```
 
 # Introducción
 
-Sea el siguiente contraste de hipótesis, dado un nivel de confianza $\alpha$: $$H_0 \sim N(\mu,\sigma^2)$$
+Sea el siguiente contraste de hipótesis, para un nivel de confianza $\alpha$: $$H_0 : X \sim N(\mu,\sigma^2) \\ H_1 : X \neq  N(\mu,\sigma^2) $$
 
 ## Test Shapiro-Wilk:
 
@@ -33,6 +45,85 @@ shapiro.test(x)
 
 Tenemos que el p-valor=0.7189 por lo que acepto la hipótesis nula, es decir, los datos provienen de una variable aleatoria con distribución normal.
 
+Acepto $H_0$
+
+## Estudio de normalidad gráficamente
+
+Análisis de la normalidad una muestra
+
+```{r echo= FALSE}
+ananor<-function(x)
+{
+        par(mfrow=c(2,2))
+        n<-length(x)
+        qqnorm(x,main=paste("Gráfico Normal de Prob. n=",n))
+        qqline(x)
+        boxplot(x,main="Gráfico de caja y bigotes")
+        hist(x,col="red",xlim=c(min(x),max(x)),br=30,freq=FALSE)
+        curve(dnorm(x,mean(x),sd(x)),min(x),max(x),1000,col="blue",
+              add=TRUE,lwd=2)
+        plot(ecdf(x), do.points=FALSE, verticals=TRUE)
+        curve(pnorm(x,mean(x),sd(x)),min(x),max(x),1000,col="blue",
+              add=TRUE,lwd=2)
+        par(mfrow=c(1,1))
+        shapiro.test(x)
+}
+```
+
+```{r}
+ananor(x)
+```
+
+Ahora con el paquete tidyverse
+
+```{r echo= FALSE}
+library(patchwork)
+ananor_tidy<-function(x)
+{
+        n<-length(x)
+        datos = data.frame(X = x)
+        p1 = ggplot(datos, aes(sample = X)) +
+                geom_qq() +
+                geom_qq_line() +
+                labs(
+                        title = paste("Gráfico Normal de Prob. n=",n)
+                )
+        p2 = ggplot(datos, aes(x = X)) +
+                geom_boxplot() +
+                labs(
+                        title = "Gráfico de caja y bigotes"
+                )
+        p3 = ggplot(datos, aes(x = X)) +
+                #geom_histogram(aes(y = ..density..), fill = "red",col="black", bins = 30) +
+                geom_density(col="red") +
+                xlim(min(datos$X),max(datos$X)) +
+                stat_function(aes(x=seq(min(X),max(X),length = length(X))),
+                              fun = dnorm, args = list(mean = mean(datos$X),
+                                                       sd = sd(datos$X)),color = "blue") +
+                labs(
+                        title = "Función de densidad"
+                )
+        p4 = ggplot(datos, aes(x = X)) +
+                stat_ecdf(geom = "step") +
+                xlim(min(datos$X),max(datos$X)) +
+                stat_function(aes(x=seq(min(X),max(X),length = length(X))),
+                              fun = pnorm, args = list(mean = mean(datos$X),
+                                                       sd = sd(datos$X)),color = "blue") +
+                labs(
+                        title = "Función de distribución"
+                )
+        print(shapiro.test(x))
+        
+        (p1 | p2) / (p3 | p4)
+        
+}
+```
+
+```{r}
+ananor_tidy(x)
+```
+
+
 ## Test de normalidad en el paquete fBasics
 
 Instalamos la librería.
@@ -41,28 +132,63 @@ Instalamos la librería.
 library(fBasics)
 ```
 
-Test de normalidad:
+### Test de normalidad:
 
 ```{r}
 ksnormTest(x)
 ```
 
-En el paquete *nortest* vienen recogido otros test.
+Aceptamos $H_0$ en todos los casos, la distribución de la variable X se aproxima a una Normal Univariante.
 
-# Ejercicio 1
+### Test de Shapiro-Wilk
 
-Dibujar la densidad de la t-Student bajo H0, los cuantiles que definen los puntos críticos y el valor del estadístico.
+```{r}
+shapiroTest(x)
+```
 
-Para hacer contrastes paramétricos deberíamos hacer antes contrastes de normalidad.
+### Test de Jaquerbera 
+
+```{r}
+jarqueberaTest(x)
+```
+
+En el paquete *nortest* vienen recogidos otros test.
+
+## Test de normalidad en el paquete nortest
+
+```{r}
+library(nortest)
+ad.test(x) # Anderson Darling
+```
+```{r}
+cvm.test(x)
+```
+
+
+```{r}
+lillie.test(x)
+```
+
+## Intervalo de confianza y Esperanza = 15
+
+
+Para hacer contrastes paramétricos deberíamos hacer antes contrastes de normalidad previos.
 
 ## Estudiar gráficamente la normalidad.
 
 Tenemos 15 empresas y medimos a cada una de ellas la variable X=Gasto en publicidad en miles de euros. Construir un IC.
 
+
 ```{r}
-x =c(17,12,15,16,15,11,12,13,20,16,14,13,10,13,11,10,13)
-length(x)
-#anador_tidy(x)
+x = c(17,12,15,16,15,11,12,13,20,16,14,13,11,10,13) 
+#length(x)
+```
+
+
+Compruebo la hipótesis de normalidad:
+
+```{r}
+ananor_tidy(x)
 ```
 
 Ligera asimetría a la derecha pero no la suficiente para rechazar la normalidad.
@@ -73,14 +199,11 @@ Caja y bigotes no revela que haya observaciones outliers.
 summary(x)
 ```
 
-Realizamos el siguiente contraste de hipótesis:
+$$
+\begin{array}{l} H_0: \mu = 15 \\ 
+H_a: \mu \not= 15 \end{array}
+$$
 
-$$
-\begin{array}{l}
-H_0: \mu = 15 \\
-H_0: \not= 15
-\end{array}
-$$
 
 Se pueden utilizar test paramétricos:
 
@@ -94,19 +217,18 @@ Luego,
 
 ```{r}
 t.test(x, mu=15)
-# t.test(x, mu=15, level=0.99, alternative="less") Podemos cambiar el nivel de confianza para el intervalo y hacer contrastes mayor menor, opción greater
+# alternative="less"
+# alternative="greater"
 ```
 
-Acepto $H_0$
 
-Con las otras opciones: (revisar y escribir bien)
 
-$$
-\begin{array}{l}
-H_0: \mu \leq 15 \\
-H_0: \mu > 15
-\end{array}
-$$
+# Ejercicio 1
+
+Dibujar la densidad de la t-Student bajo $H_0$, los cuantiles que definen los puntos críticos y el valor del estadístico t.
+
+
+
 
 ```{r}
 library(ggplot2)
@@ -124,26 +246,80 @@ resul=t.test(datos$X,mu=mu_)
   geom_vline(aes(xintercept=qt(0.975,df=resul$parameter)),color="red", 
              linetype="dashed",size=1.4)
 }
-                    
 ```
 
 ```{r}
 funcion_g_dt_test(x,mu_ = 15)
 ```
 
-## Ejercicio 2
+# Ejercicio 2
 
-```{r}
-#func_g_dt_test_unilateral(x,mu_=15)
+```{r echo=FALSE}
+func_g_dt_test_uni = function(x, 
+                              mu_ = 15, 
+                              alternativa = "less",
+                              alpha = 0.05) {
+#mu_ = 15
+datos = data.frame(X = x)
+
+if (!(alternativa %in% c("less","greater"))) {
+#stop("alternativa Solamente puede tomar los valores: less o greater") 
+warning("alternativa Solamente puede tomar los valores: less o greater") 
+#message("alternativa Solamente puede tomar los valores: less o greater")
+}
+resul = t.test(datos$X,mu = mu_ ,alternative = alternativa) #str(resul)
+p1 = ggplot(datos,aes(x = X)) +
+stat_function(aes(x = seq(-4,4,length = length(X))),
+fun = dt, args = list(df = length(datos$X)-1),
+color = "black") +
+geom_vline(aes(xintercept = resul$statistic),color = "blue",
+linetype = "dotted",size = 1.4) 
+if (alternativa=="less") {
+  return( p1 +
+geom_vline(aes(xintercept = qt(alpha,df = resul$parameter)),color = "red", linetype = "dashed",size = 1.4)
+  ) 
+  }
+if (alternativa=="greater") { 
+  return(
+p1 +
+geom_vline(aes(xintercept = qt(1-alpha,df = resul$parameter)),color = "red",linetype = "dashed",size = 1.4)
+  )
+  }
+}
 ```
 
-## Ejercicio 3
+```{r}
+func_g_dt_test_uni(x,mu_ = 15)
+```
 
+```{r}
+func_g_dt_test_uni(x,mu_ = 15, alternativa = "two.sided")
+```
+
+
+
+```{r}
+func_g_dt_test_uni(x,mu_ = 15, alternativa = "less",alpha = 0.10)
+```
+
+
+
+
+# Ejercicio 3
+
+$$
+110, 12, 2.5, 98, 1017, 540, 54, 4.3, 150, 432
+$$
 Se desea contrastar $H_0$ precio medio igual a 500
+
+$$
+\begin{array}{l} H_0: \mu = 500 \\ 
+H_a: \mu \not= 500 \end{array}
+$$
 
 ```{r}
 x=c(110,12,2.5,98,1017,540,54,4.3,150,432)
-#ananor_tidy
+ananor_tidy(x)
 ```
 
 No podemos usar la estadística paramétrica para estudiar esta muestra, habrá que emplear técnicas no paramétricas, como el test de rangos signos de Wilcoxson.
@@ -165,7 +341,6 @@ mu_=500
 rangos=rank(abs(x-mu_))
 rangos[(x-mu_) >0]
 (est.w=sum(rangos[(x-mu_) >0]))
-
 ```
 
 Obtenemos el valor V del test anterior.
@@ -191,13 +366,27 @@ Esperanza
 sum(xx*dsignrank(xx,n=n))
 ```
 
+```{r}
+n*(n+1)/4
+```
+
+
 Varianza
 
 ```{r}
 sum(xx^2*dsignrank(xx,n=n))-(n*(n+1)/4)^2
 ```
 
-## Ejercicio 4
+
+```{r}
+n*(n+1)*(2*n+1)/24
+```
+
+# Ejercicio 4
+
+En este ejemplo se considera la hipótesis nula de que la progenie de un cruce de plantas produce como resultado plantas de tipo A o B con probabilidades respectivas 1/4 y 3/4.
+
+En un experimento se obtienen 243 de tipo A y 682 de tipo B.
 
 $$
 \begin{array}{l}
@@ -214,15 +403,13 @@ binom.test(c(682,243),p=3/4)
 
 Acepto $H_0$, podemos afirmar que p=3/4.
 
-### 
 
-```{r}
-prop.test(x=682,n=682+243,p=3/4)
-```
 
-Este contraste usa la aproximación normal. Aceptamos $H_0$
+
 
 ### Apartado a
+
+Calcular el estadístico chi-cuadrado y comprobar que no coincide con Z.
 
 ```{r}
 n=682+243
@@ -232,9 +419,40 @@ Z^2
 ```
 
 ```{r}
-E0=n*(1/4) # Número esperado de fracasos
-E1=n*(3/4)
-O0=243
-O1=682
-((E0-O0)^2)/E0+((E1-O1)^2)/E1
+E0 = n*(1/4)
+E1 = n*(3/4)
+Ob0 = 243
+Ob1 = 682
+((E0-Ob0)^2)/E0 + ((E1-Ob1)^2)/E1
 ```
+
+
+
+## Apartado b
+
+Calcular el estadístico chi-cuadrado con la corrección de Yates y comprobar que coincide con el estadístico que da prop.test.
+
+
+```{r}
+prop.test(x=682,n=682+243,p=3/4)
+```
+
+Este contraste usa la aproximación normal. Aceptamos $H_0$
+
+
+Con la corrección de Yates:
+```{r}
+((abs(E0-Ob0)-0.5)^2)/E0 + ((abs(E1-Ob1)-0.5)^2)/E1
+```
+
+
+
+## Apartado c
+
+FALTA Escribir el test
+
+
+```{r}
+prop.test(35,80,p=0.8,alternative = "less",conf.level = 0.95)
+```
+
