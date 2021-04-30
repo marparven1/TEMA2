@@ -1,6 +1,6 @@
 ---
 title: "Hoja 4 (c): Tests Chi-cuadrado con R"
-author: "Departamento de Estadística e Investigación Operativa. Universidad de Sevilla"
+author: "Marta Venegas Pardo"
 subtitle: Estadística Computacional I. Grado en Estadística
 lang: es
 output:
@@ -17,7 +17,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Ejercicio 1
+# Ejercicio 1: Test de bondad de ajuste
 
 Bondad de ajuste. Comprobar si un dado es correcto a partir del número de veces que ha salido cada lado.
 
@@ -38,7 +38,7 @@ chisq.test(frecu, p=probs)
 
 Acepto que sigue ese modelo probabilístico (equiprobabilidad).
 
-## Ejercicio 2
+# Ejercicio 2: Distribución uniforme discreta
 
 Por defecto se compara con la unif. discreta. En el siguiente ejemplo se trata de ver si en un texto las apariciones de las letras E,T,N,R,O se distribuyen según los valores conocidos en inglés.
 
@@ -57,7 +57,7 @@ Tenemos un p-valor muy extremo, existe una gran diferencia entre los valores obs
 Se rechaza que la muestra siga el modelo teórico.
 
 
-## Ejercicio 3
+# Ejercicio 3: Ley uniforme discreta, muestras
 
 En la siguiente simulación se ilustra la calidad de la aproximación.
 Se generan M muestras de tamaño n de una ley Uinforme discreta.
@@ -73,7 +73,7 @@ estad<- numeric(M)
 ```
 
 
-- Generar la muestra i, calcular la tabla y obtener el estadístico chi-cuadrado.
+## Generar la muestra i, calcular la tabla y obtener el estadístico chi-cuadrado.
 
 ```{r message=FALSE , warning=FALSE}
 for (i in 1:M) {
@@ -93,7 +93,7 @@ Tenemos estad con 5000 valores
 head(estad)
 ```
 
-- Histograma del estadístico y densidad de la chi-cuadrado.
+## Histograma del estadístico y densidad de la chi-cuadrado.
 
 
 ```{r}
@@ -103,11 +103,11 @@ curve(dchisq(x,length(probabi)-1), col="blue",lwd=2,add=TRUE)
 ```
 
 
-## Ejercicio 4
+# Ejercicio 4: Tablas de contingencia: Test
 
-Tests de independencia en tablas de contingencia.
+## Tests de independencia en tablas de contingencia.
 
-```{r echo=FALSE}
+```{r echo=TRUE}
 #save(TRABAJO,AUTOESTIMA,file="ej04.RData")
 load("ej04.RData")
 tabla<- table(TRABAJO,AUTOESTIMA)
@@ -115,7 +115,7 @@ tabla
 ```
 
 
-### Apartado a
+## Apartado a
 
 Comprobación del p-valor y dibujar la distribución teórica, el cuantil y el valor observado.
 
@@ -153,7 +153,7 @@ sum((resul$observed-resul$expected)^2/(resul$expected))
 
 
 
-Para el cálculo del p-valor:
+## Cálculo del p-valor:
 
 ```{r}
 nr=nrow(tabla)
@@ -163,7 +163,7 @@ gr_lib=(nr-1)*(nc-1)
 ```
 
 
-Podemos dibujar la fdd para la Chi-Cuadrado con esos grados de libertad.
+## Dibujar la fdd para la Chi-Cuadrado con esos grados de libertad.
 
 ```{r}
 curve(dchisq(x,gr_lib),0,30,1000,lwd=2,col="blue")
@@ -175,9 +175,9 @@ El p-valor es la probabilidad de que quede a la derecha, que como vemos es muy p
 La línea verde me muestra donde se encuentra el estadístico,donde empieza la región crítica.
 
 
-## Ejercicio 5 
+# Ejercicio 5: Librería vcd
 
-Tests de independencia en tablas de contingencia (Uso de la librería vcd).
+## Tests de independencia en tablas de contingencia (Uso de la librería vcd).
 
 ```{r}
 load("GSS.RData")
@@ -186,17 +186,21 @@ GSS
 
 
 
-Podemos hacer una tabla de frecuencias con el paquete básico.
+## Tabla de frecuencias con el paquete básico.
+
 ```{r}
 tabla_GSS=xtabs(count ~ sex+party , data = GSS)
 tabla_GSS
 ```
-Realizamos el test Chi_Cuadrado.
+
+## Test Chi_Cuadrado.
+
 ```{r}
 chisq.test(tabla_GSS)
 ```
 
-Lo hacemos ahora con el paquete vcd.
+## Uso paquete vcd
+
 Instalo el paquete vcd
 
 ```{r}
@@ -206,7 +210,7 @@ assocstats(tabla_GSS)
 ```
 Me calcula todas las medidas de asociación. Me interesa el p-valor de pearson.
 
-Hacemos un gráfico.
+## Gráfico.
 ```{r}
 assocplot(tabla_GSS, col=c("blue","pink"),
           main="Azul=Obs>Esp , Rosa= Obs<Esp")
@@ -218,17 +222,19 @@ Parece que existe un comportamiento relacionado con el sexo.
 
 
 
-## Ejercicio 6
+# Ejercicio 6: Té
 
 
 Una dama británica sostenía que era capaz de adivinar si en un té con leche se ha vertido antes el té o la leche. 
 
 Para ello se realizó un experimento donde se le pidió que lo adivinara para 8 tazas:
 
-```
-H0:P[dice leche=/leche]=P[dice té/leche]
-H1:P[dice leche=/leche]>P[dice té/leche]
-```
+$$
+\begin{array}{l}
+H_0:P[dice leche=/leche]=P[dice té/leche] \\
+H_1:P[dice leche=/leche]>P[dice té/leche]
+\end{array} 
+$$
 
 
 
@@ -241,7 +247,7 @@ pruebate <-
 pruebate
 ```
 
-Probamos con el Test ChiCuadrado (a pesar de que las observadas no son mayores o iguales a 5)
+## Test ChiCuadrado (a pesar de que las observadas no son mayores o iguales a 5)
 
 ```{r}
 res=chisq.test(pruebate)
@@ -255,7 +261,7 @@ res$expected
 ```
 Lo observado no se espera mucho de lo esperado.
 
-
+## Test exacto de Fisher
 En esta situación es más apropiado aplicar el Test exacto de Fisher:
 
 ```{r}
@@ -263,11 +269,7 @@ fisher.test(pruebate, alternative = "greater")
 ```
 
 
-## Ejercicio 7 
-
-Gafas y antecedentes.
-
-
+# Ejercicio 7: Gafas y antecedentes.
 
 ```{r}
 gafasante <-
@@ -282,16 +284,18 @@ Se requiere contrastar que H0: Variables categóricas independientes.
 chisq.test(gafasante) # Muestres independientes.
 ```
 
-El test de fisher:
+## Test de fisher:
 
 ```{r}
 fisher.test(gafasante)
 ```
 Rechazo H0, existe un comportamiento diferente entre las variables
 
-## Ejercicio 8
+# Ejercicio 8: Datos relacionados
 
-Test de McNemar (datos relacionados). Datos relacionados, por ejemplo antes-después.
+## Test de McNemar (datos relacionados). 
+
+Datos relacionados, por ejemplo antes-después.
 
 Dos encuestas con un mes de separación, se pregunta a cada uno de los 1600 encuestados si aprueba o desaprueba a un gobernante.
 
@@ -311,4 +315,6 @@ mcnemar.test(datos)
 ```
 
 
-El pvalor es menor 1 alpha, rechazo H0: lasm uestra se comportan igual. Es decir, ha habido un cambio de opcinión de una encuesta a otra
+El p-valor es muy pequeño y menor que alpha, rechazo H0: las muestras se comportan igual. Es decir, ha habido un cambio de opcinión de una encuesta a otra.
+
+
