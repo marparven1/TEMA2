@@ -1,6 +1,6 @@
 ---
 title: "Hoja 4 (b): Inferencia sobre 2 muestras con R"
-author: "Departamento de Estadística e Investigación Operativa. Universidad de Sevilla"
+author: "Marta Venegas Pardo"
 subtitle: Estadística Computacional I. Grado en Estadística
 lang: es
 output:
@@ -9,7 +9,8 @@ output:
     toc_depth: 3
     number_sections: yes
   html_document: 
-    toc: no
+    toc: yes
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -17,36 +18,52 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-## Ejercicio 1
+Instalamos las librerías necesarias.
 
-Comparación de medias con varianzas iguales.
+```{r}
+library(ggplot2)
+source("ananor.R")
+library(patchwork)
+```
+
+
+# Ejercicio 1: Comparación de medias con varianzas iguales.
 
 ```{r}
 x <- c(15, 10, 13, 7, 9, 8, 21, 9, 14, 8)
 y <- c(15, 14, 12, 8, 14, 7, 16, 10, 15, 12)
-library(ggplot2)
-source("ananor.R")
 ```
+
+
+
 
 ```{r}
 ananor_tidy(x)
-ananor(y)
 ```
 
-### Representación
+
+```{r}
+ananor_tidy(y)
+```
+
+## Representación
 
 
 ```{r}
 boxplot(x,y,names=c("Medicamento", "Placebo"))
 ```
-
-
-
-
 Tiempos de recuperación con cierta medicina (x) y grupo placebo (y).
+La mediana con placebo es bastante más elevada que con medicamentos. 
 
 
-### Estudiar la igualdad de varianzas
+## Estudiar la igualdad de varianzas
+
+$$
+\begin{array}{l}
+H_0: \sigma^2_x=\sigma^2_y \\
+H_1: \sigma^2_x \neq \sigma^2_y
+\end{array}
+$$
 
 - 1.Con var.test
 
@@ -55,9 +72,10 @@ var.test(x,y)
 ```
 
 
-Se pueden considerar varianzas iguales.
 
-El estadístico utilizado, es el codiente de las cuasivarianzas, porque n es el mismo.
+Se pueden considerar varianzas iguales, acepto $H_0$, pvalor>0.05
+
+El estadístico utilizado, es el codiente de las cuasivarianzas, porque n es el mismo para ambas muestras.
 
 ```{r}
 var(x)/var(y)
@@ -66,17 +84,19 @@ var(x)/var(y)
 - 2. Otro test: Test de Levenge para igualdad de varianzas
 
 Está en la librería car
+
 ```{r}
 library(car)
 ```
 
 ```{r}
 leveneTest(c(x,y), factor(c(rep("Medicamento",length(x)),c(rep("Placebo",length(y))))), center="mean")
+# median es el valor por defecto
 ```
 
 Aceptamos la igualdad de varianzas.
 
-### Test paramétricos para la comparación de muestras independientes. t-test
+## Test paramétricos para la comparación de muestras independientes (t-test)
 
 ```{r}
 t.test(x,
@@ -87,15 +107,18 @@ t.test(x,
 
 No tenemos evidencias para rechazar $H_0: \mu_1 = \mu_2$, a pesar de ver una gran diferencia en el boxplot.
 
-Vemos que en diferencia de medias, el 0 está contenido en el intervalo. Acepto.
+Vemos que en diferencia de medias, el 0 está contenido en el intervalo. Acepto $H_0$.
 
-## Ejercicio 2
-
-Comparación de medias con varianzas distintas
+# Ejercicio 2: Comparación de medias con varianzas distintas
 
 ```{r}
 x <- c(11, 10, 8, 8, 10, 7, 12, 8, 11, 8)
 y<- c(15, 10, 13, 7, 9, 8, 21, 9, 14, 8)
+```
+
+## Análisis de normalidad, caja y bigotes, test de varianzas y t.test
+
+```{r}
 ananor(x)
 ananor(y)
 ```
@@ -105,9 +128,11 @@ ananor(y)
 ```{r}
 boxplot(x,y,names=c("Medicamento", "Placebo"))
 ```
-Comentar
+La mediana para ambas variables es muy sumilar, aunque vemos que con medicamento
+el tiempo mediano de recuperación es algo inferior.
 
-Realizamos el var.test 
+Realizamos el var.test de igualdad de varianzas.
+
 ```{r}
 var.test(x,y)
 ```
@@ -117,6 +142,7 @@ El p-valor 0.01007 < 0.05, rechazo $H_0$.
 
 
 Realizamos también el Test de Levenge:
+
 ```{r}
 leveneTest(c(x,y), 
            factor(c(rep("Medicamento",length(x)),
@@ -125,9 +151,16 @@ leveneTest(c(x,y),
 ```
 
 
-Valor muy poco significativo, rechado H0, no existe igualdad de varianzas.
+Valor muy poco significativo, vuelvo a tener que rechazar $H_0$, no existe igualdad de varianzas.
 
-Tenemos que comparar la media de las dos muestras, con distintas varianzas.
+## Comparación de medias en dos muestras, con distintas varianzas.
+
+$$
+\begin{array}{l}
+H_0:  \mu_x = \mu_y \\
+H_1: \mu_x \neq \mu_y
+\end{array}
+$$
 
 ```{r}
 t.test(x,
@@ -139,12 +172,26 @@ t.test(x,
 Aceptamos la igualdad de medias. Misma media pero las muestras no proceden de la misma distribución normal.
 
 
-## Ejercicio 3
-
-Dos muestras relacionadas
+# Ejercicio 3: Muestras relacionadas
 
 10 vinos son puntuados por dos jurados. Se quiere contrastar que el jurado 1
-puntúa más alto que el jurado 2.
+puntúa más alto que el jurado 2. Esto es equivalente a que la diferencia, en término medio, sea mayor que o $dif = X-Y >0$
+
+$$
+\begin{array}{l}
+H_0:  \mu_x > \mu_y \\
+H_1: \mu_x \leq \mu_y
+\end{array}
+$$
+O lo que es equivalente:
+
+$$
+\begin{array}{l}
+H_0:  \mu_x - \mu_y > 0 \\
+H_1: \mu_x - \mu_y \leq 0
+\end{array}
+$$
+
 
 ```{r}
 x <- c(3.1, 0.2, 5.1, 1.9, 4.8,
@@ -152,17 +199,24 @@ x <- c(3.1, 0.2, 5.1, 1.9, 4.8,
 y <-c(2.1, 1, 4.1, 1.2, 4.1, 
       3.3, 2.8, 1.7, 3.3, 4.1)
 dif=x-y
+```
+
+
+```{r}
 ananor_tidy(dif)
 ```
 
 No hay observaciones outliers y hau algunas salidas que hacen que el p-valor no sea lo suficientemnete grande pero no las suficientes para rechazar la normalidad de la variable diferencia.
 
-10 vinos son puntuados por dos jurados. Se quiere contrastar que el jurado 1
-puntúa más alto que el jurado 2. Esto es equivalente a que la diferencia, en término medio, sea mayor que o $dif = X-Y >0$
+
 
 ```{r}
 t.test(dif,alternative = "greater")
 ```
+
+Rechazo $H_0$, el segundo jurado puntúa más alto que el 1.
+
+
 Es lo mismo que:
 ```{r}
 t.test(x,y,paired=TRUE,alternative = "greater")
@@ -171,29 +225,34 @@ t.test(x,y,paired=TRUE,alternative = "greater")
 El p-valor < 0.05, por lo que rechazo la hipótesis nula. Por lo que la media de la variable x es mayor. El primer jurado puntúa más alto qu el 2.
 
 
+# Ejercicio 4
+
+Dibujar ambas muestras (anteriores) con plot caja y bigote de x-y y realizar el contraste.
+
+
 Dibujamos la variable dif
+
 ```{r}
 plot(dif, type="b")
-abline(h=0, col="red")
+abline(h=0, col="black")
 ```
 
 Tendríamos la línea en el 0, que es donde estarían todos los puntos si la puntuación hubiera sido la misma.
+
+## Comparación de medias en muestras relacionadas NO NORMALES- TEST DE WILXCONSON
 
 Si hubiera fallado la normalidad, aplicaríamos el test de Wilxconson para la muestra diferencia.
 
 ```{r}
 wilcox.test(dif, alternative = "greater")
 ```
-Emplea la correción de continuidad, ya estmaos en la normal. De nuevo rechazamos la hipótesis nula y concluímos con que el jurado 1 está puntuando con más nota que el 2.
-
-## Ejercicio 4
-
-Dibujar ambas muestras (anteriores) con plot caja y bigote de x-y y realizar el contraste.
+Emplea la correción de continuidad, ya estamaos en la normal. De nuevo rechazamos la hipótesis nula y concluímos con que el jurado 2 está puntuando con más nota que el 1.
 
 
-## Ejercicio 5
 
-Dos muestras independientes
+
+
+# Ejercicio 5: Muestras independientes
 
 ```{r}
 x=c(0.11, 0.62, 0.32, 2.41, 3.48,
@@ -205,18 +264,31 @@ y=c(0.01, 0.14, 0.23, 0.18, 1.32,
 Con test no paramétricos.
 
 
-Estudiamos la normalidad
+## Estudiamos la normalidad
 
 ```{r}
 ananor(x)
+```
+
+
+```{r}
 ananor(y)
 ```
-La variable X no sigue una normal mientras que Y
 
 
-Test de Mann-Whitney o Mann-Whitney-Wilconxon
+La variable X no sigue una normal mientras que Y si podemos aceptar que se 
+distribuye según una normal.
+
+
+## Test de Mann-Whitney o Mann-Whitney-Wilconxon (igualdad de medias)
 
 ```{r}
 wilcox.test(x,y,exact=TRUE)
 ```
 
+```{r}
+wilcox.test(x,y,exact = FALSE)
+```
+
+
+Acepto la igualdad de medias (medianas)
