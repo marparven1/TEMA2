@@ -391,7 +391,7 @@ En un experimento se obtienen 243 de tipo A y 682 de tipo B.
 $$
 \begin{array}{l}
 H_0: p= \dfrac{3}{4} \\
-H_0: p \not= \dfrac{3}{4}
+H_1: p \not= \dfrac{3}{4}
 \end{array}
 $$
 
