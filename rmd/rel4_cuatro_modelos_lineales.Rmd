@@ -1,13 +1,16 @@
 ---
 title: "Hoja 4 (d): Modelos lineales con R"
-author: "Departamento de Estadística e Investigación Operativa. Universidad de Sevilla"
+author: "Marta Venegas Pardo"
 subtitle: Estadística Computacional I. Grado en Estadística
 lang: es
 output:
-  pdf_document: 
-    toc: no
-  html_document: 
-    toc: no
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+  html_document:
+    toc: yes
+    toc_depth: '3'
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -23,7 +26,7 @@ ANOVA de un factor.
 El fichero de datos "scores.txt" contiene la puntuación obtenida en una prueba de nivel de inglés para 40 alumnos. Se han considerado 4 academias, de cada una de las cuales han sido seleccionados aleatoriamente 10 alumnos. Se trata de estudiar si existen diferencias significativas entre las puntuaciones medias dependiendo de la academia.
 
 ```{r}
-scores=read.table(file="scores.txt", header=TRUE)
+scores=read.table(file="files/scores.txt", header=TRUE)
 head(scores)
 ```
 
@@ -394,7 +397,7 @@ Los gastos publicitarios en TV y Radio explican el 89.72% de la varianza de las 
 ### Solución
 ```{r}
 library(readr)
-Advertising <- read_csv("rmd/Advertising.csv")
+Advertising <- read_csv("files/Advertising.csv")
 ```
 
 ```{r}
