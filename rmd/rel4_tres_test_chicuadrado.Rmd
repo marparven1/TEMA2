@@ -4,10 +4,13 @@ author: "Departamento de Estadística e Investigación Operativa. Universidad de
 subtitle: Estadística Computacional I. Grado en Estadística
 lang: es
 output:
-  html_document: 
+  pdf_document:
     toc: yes
-  pdf_document: 
+    toc_depth: 3
+  html_document:
     toc: yes
+    toc_depth: '3'
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
